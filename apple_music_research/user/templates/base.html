@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<!-- saved from url=(0041)http://v3.bootcss.com/examples/dashboard/ -->
+<html lang="zh-CN">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/static/musics.png">
+    <title>Apple Music - 智能推荐引擎</title>
+    <!-- 引入 Bootstrap 基础层供遗留下来的类名使用 -->
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- 引入高颜值的 UI/UX Pro Max 生成的 Apple Music 主题样式 -->
+    <link href="/static/css/apple_music.css" rel="stylesheet">
+    
+    <!-- 引入 ECharts 前端可视化库引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+    
+    <!-- 引入 jQuery -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Just for debugging purposes. Don't actually copy these 2 lines! -->
+    <!--[if lt IE 9]><script src="../../assets/js/ie8-responsive-file-warning.js"></script><![endif]-->
+    <script src="/static/js/ie-emulation-modes-warning.js"></script>
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="//cdn.bootcss.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+      <script src="//cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+
+<nav class="navbar  navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="/" style="display: flex; align-items: center; gap: 15px;">
+                <svg viewBox="0 0 512 512" width="40" height="40" fill="currentColor">
+                    <path d="M318.7 268.7c-.2-36.7 29.8-54.4 31.2-55.2-17.1-25-43.7-28.5-53.1-28.9-22.4-2.3-43.8 13.1-55.2 13.1-11.4 0-29.1-12.8-47.7-12.5-24.5.4-47 14.4-59.5 36.2-25.2 43.8-6.5 108.6 18 144 12 17.3 26.2 36.5 44.9 35.8 18-3.4 24.9-14.3 46.6-14.3 21.7 0 28.1 11.1 46.9 10.8 19.1-.3 31.4-17.4 43.1-34.4 13.5-19.6 19.1-38.6 19.3-39.6-.5-.2-37.2-14.3-37.4-56.9zM250.6 154.5c9.9-12 16.7-28.8 14.9-45.5-14.4.6-31.9 9.5-42.3 21.6-9.4 10.8-17.5 27.9-15.3 44.2 15.9 1.2 32.1-7.7 42.7-20.3z"></path>
+                </svg>
+                Apple Music 智能引擎
+            </a>
+            <button type="button" id="sidebar-control" class="navbar-toggle collapsed"data-target="#sidebar" aria-expanded="false" aria-controls="navbar">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse " aria-expanded="true">
+            <ul class="nav navbar-nav navbar-right">
+                {% if request.session.login_in == True %}
+                    <li><a href="{% url 'personal' %}">{{ request.session.name }}</a></li>
+                    <li><a href="{% url 'logout' %}">退出</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">登录</a></li>
+                    <li><a href="{% url 'register' %}">注册</a></li>
+                {% endif %}
+            </ul>
+            <form class="navbar-form navbar-right" action="{% url 'search' %}" method='post'>
+                {% csrf_token %}
+                <input type="text" class="form-control" name="search" placeholder="输入关键字">
+                <button class="btn btn-default" type="submit">提交</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-3 col-md-2 sidebar"  id="sidebar">
+            <ul class="nav nav-sidebar navbar-collapse" >
+                <li class="active"><a href="{% url 'all_music' %}"><span>📻</span> 全部歌曲</a></li>
+                <li><a href="{% url 'most_view' %}"><span>🔥</span> 浏览最多</a></li>
+                <li><a href="{% url 'most_mark' %}"><span>⭐</span> 评分最多</a></li>
+                <li><a href="{% url 'hot_music' %}"><span>❤️</span> 收藏最多</a></li>
+                <li><a href="{% url 'latest_music' %}"><span>✨</span> 最新歌曲</a></li>
+                <li><a href="{% url 'kindof' %}"><span>📂</span> 分类歌曲</a></li>
+                <br>
+                <li class="text-muted" style="padding: 10px 20px; font-size: 11px; text-transform: uppercase; letter-spacing: 1px;">智能引擎</li>
+                <li><a href="{% url 'dashboard' %}"><span>📊</span> 数据大屏</a></li>
+                <li><a href="{% url 'week_reco' %}"><span>🧠</span> 我猜你喜欢</a></li>
+                <li><a href="{% url 'item_recommend' %}"><span>🎯</span> item推荐</a></li>
+                <li><a href="{% url 'personal' %}"><span>👤</span> 我的信息</a></li>
+            </ul>
+        </div>
+        <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main ">
+            {% block right-panel-content %}
+            {% endblock %}
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+{% block bottom-js %}
+    <!--put your own js here in your page -->
+    </script>
+{% endblock %}
+
+</body>
+</html>

@@ -1,0 +1,23 @@
+/论文/
+/资料/
+/openspec/
+/.agent/
+/.gemini/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+
+# IDEs
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Virtual environments
+venv/
+env/
+.env

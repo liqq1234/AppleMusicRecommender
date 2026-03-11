@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block right-panel-content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- 左侧：表单修改 -->
+        <div class="col-md-5">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">个人信息修改</h3>
+                </div>
+                <div class="panel-body">
+                    <form action="{% url 'personal' %}" method='post' autocomplete="on">
+                        {% csrf_token %}
+                        {% for field in form %}
+                        <div class="form-group">
+                            <label class="text-muted">{{ field.label }}</label>
+                            {{ field.errors }}
+                            {{ field }}
+                        </div>
+                        {% endfor %}
+                        <div style="margin-top: 20px;">
+                            <button type="submit" class="btn btn-primary">保存修改</button>
+                            <button type="reset" class="btn btn-default">重置</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="well" style="margin-top: 20px;">
+                <div class="btn-group btn-group-justified" role="group">
+                    <a href="{% url 'mycollect' %}" class="btn btn-info">我的收藏</a>
+                    <a href="{% url 'my_comments' %}" class="btn btn-info">我的评论</a>
+                    <a href="{% url 'my_rate' %}" class="btn btn-info">我的评分</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右侧：ECharts 音乐画像 -->
+        <div class="col-md-7">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">♫ 我的音乐画像 (Apple Music Profile)</h3>
+                </div>
+                <div class="panel-body">
+                    <div id="radar-chart" style="width: 100%; height: 450px;"></div>
+                    <p class="text-center text-muted" style="margin-top: 10px;">
+                        <small>基于您的评分历史与播放偏好算法分析得出</small>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // 初始化雷达图
+    var chartDom = document.getElementById('radar-chart');
+    var myChart = echarts.init(chartDom, 'dark'); // 使用深色模式
+    var option;
+
+    var tags = {{ chart_tags|safe }};
+    var values = {{ chart_values|safe }};
+
+    // 如果没有数据，显示占位
+    if (tags.length === 0) {
+        tags = ['流行', '摇滚', '电子', '古典', '爵士', '民谣'];
+        values = [0, 0, 0, 0, 0, 0];
+    }
+
+    option = {
+        backgroundColor: 'transparent',
+        radar: {
+            indicator: tags.map(t => ({ name: t, max: Math.max(...values) + 2 || 10 })),
+            splitArea: {
+                show: false
+            },
+            axisLine: {
+                lineStyle: {
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }
+            },
+            splitLine: {
+                lineStyle: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                }
+            }
+        },
+        series: [{
+            name: '音乐偏好',
+            type: 'radar',
+            data: [
+                {
+                    value: values,
+                    name: '偏好权重',
+                    areaStyle: {
+                        color: new echarts.graphic.RadialGradient(0.5, 0.5, 1, [
+                            { color: 'rgba(34, 197, 94, 0.6)', offset: 0 },
+                            { color: 'rgba(34, 197, 94, 0.1)', offset: 1 }
+                        ])
+                    },
+                    lineStyle: {
+                        color: '#22C55E'
+                    },
+                    itemStyle: {
+                        color: '#22C55E'
+                    }
+                }
+            ]
+        }]
+    };
+
+    option && myChart.setOption(option);
+    
+    // 响应式调整
+    window.addEventListener('resize', function(){
+        myChart.resize();
+    });
+</script>
+{% endblock %}
+

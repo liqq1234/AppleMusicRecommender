@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block right-panel-content %}
+<div class="container-fluid" style="padding: 60px 20px 20px 20px;">
+    <!-- 第一行：核心指标卡片 -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="auth-card" style="padding: 20px; text-align: center; max-width: none; margin-bottom: 20px;">
+                <h4 style="color: var(--color-text-muted); margin-bottom: 5px;">曲库总量</h4>
+                <h1 style="margin: 0; color: var(--apple-red); font-family: 'Outfit';">{{ total_musics }}</h1>
+                <small class="text-muted">首高品质音乐</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="auth-card" style="padding: 20px; text-align: center; max-width: none; margin-bottom: 20px;">
+                <h4 style="color: var(--color-text-muted); margin-bottom: 5px;">引擎用户</h4>
+                <h1 style="margin: 0; color: #AF52DE; font-family: 'Outfit';">{{ total_users }}</h1>
+                <small class="text-muted">位活跃听众</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="auth-card" style="padding: 20px; text-align: center; max-width: none; margin-bottom: 20px;">
+                <h4 style="color: var(--color-text-muted); margin-bottom: 5px;">评价行为</h4>
+                <h1 style="margin: 0; color: #FF2D55; font-family: 'Outfit';">{{ total_rates }}</h1>
+                <small class="text-muted">次真实评分数据</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="auth-card" style="padding: 20px; text-align: center; max-width: none; margin-bottom: 20px;">
+                <h4 style="color: var(--color-text-muted); margin-bottom: 5px;">系统满意度</h4>
+                <h1 style="margin: 0; color: #FFD60A; font-family: 'Outfit';">{{ avg_rate }}</h1>
+                <small class="text-muted">平均推荐得分</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第二行：深度分析图表 -->
+    <div class="row" style="margin-top: 20px;">
+        <div class="col-md-6">
+            <div class="auth-card" style="padding: 25px; max-width: none; height: 450px;">
+                <h3 style="margin-bottom: 30px; font-size: 20px;">📊 热门音乐流派分布</h3>
+                <div id="genre-chart" style="width: 100%; height: 320px;"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="auth-card" style="padding: 25px; max-width: none; height: 450px;">
+                <h3 style="margin-bottom: 30px; font-size: 20px;">🔥 最受欢迎歌手排行榜</h3>
+                <div id="artist-chart" style="width: 100%; height: 320px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 第三行：评分生态与全景分析 -->
+    <div class="row" style="margin-top: 30px;">
+        <div class="col-md-12">
+            <div class="auth-card" style="padding: 25px; max-width: none;">
+                <h3 style="margin-bottom: 30px; font-size: 20px;">✨ 推荐算法生态画像</h3>
+                <div id="rate-chart" style="width: 100%; height: 350px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    // 1. 流派分布饼图
+    var genreChart = echarts.init(document.getElementById('genre-chart'), 'dark');
+    genreChart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'item' },
+        series: [{
+            name: '音乐流派',
+            type: 'pie',
+            radius: ['40%', '70%'],
+            avoidLabelOverlap: false,
+            itemStyle: { borderRadius: 10, borderColor: '#1c1c1e', borderWidth: 2 },
+            label: { show: true, color: '#fff' },
+            emphasis: { label: { show: true, fontSize: '18', fontWeight: 'bold' } },
+            data: [
+                {% for label in genre_labels %}
+                { 
+                    value: {{ genre_values|slice:forloop.counter0|last|default:0 }}, 
+                    name: '{{ label }}' 
+                },
+                {% endfor %}
+            ]
+        }]
+    });
+
+    // 2. 热门歌手柱状图
+    var artistChart = echarts.init(document.getElementById('artist-chart'), 'dark');
+    artistChart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', data: {{ artist_labels|safe }}, axisLabel: { interval: 0, rotate: 30 } },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+        series: [{
+            data: {{ artist_values }},
+            type: 'bar',
+            itemStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: '#FA2D48' },
+                    { offset: 1, color: '#AF52DE' }
+                ]),
+                borderRadius: [5, 5, 0, 0]
+            }
+        }]
+    });
+
+    // 3. 评分分布面积图
+    var rateChart = echarts.init(document.getElementById('rate-chart'), 'dark');
+    rateChart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: { trigger: 'axis' },
+        xAxis: { type: 'category', boundaryGap: false, data: {{ rate_labels|safe }} },
+        yAxis: { type: 'value', splitLine: { lineStyle: { color: 'rgba(255,255,255,0.1)' } } },
+        series: [{
+            data: {{ rate_values }},
+            type: 'line',
+            smooth: true,
+            areaStyle: { opacity: 0.3, color: '#FA2D48' },
+            lineStyle: { color: '#FA2D48', width: 4 },
+            symbol: 'circle',
+            symbolSize: 10
+        }]
+    });
+
+    window.onresize = function() {
+        genreChart.resize();
+        artistChart.resize();
+        rateChart.resize();
+    };
+</script>
+{% endblock %}

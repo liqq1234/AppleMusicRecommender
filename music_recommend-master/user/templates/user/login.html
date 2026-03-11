@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block right-panel-content %}
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>用户登录</h2>
+            {% if message %}
+                <div class="alert alert-danger">{{ message }}</div>
+            {% endif %}
+            <form action="{% url 'login' %}" method='post' autocomplete="on">
+                {% csrf_token %}
+                {% for field in form %}
+                    <div class="form-group">
+                        {{ field.label_tag }}
+                        {{ field.errors }}
+                        {{ field }}
+                    </div>
+                {% endfor %}
+                <div class="auth-btn-group">
+                    <button type="submit" class="btn-auth-submit">
+                        <span class="glyphicon glyphicon-ok"></span> 开启音乐之旅
+                    </button>
+                    <button type="reset" class="btn-auth-reset">
+                        <span class="glyphicon glyphicon-remove"></span>
+                    </button>
+                </div>
+            </form>
+            <div class="auth-footer">
+                还没有账号？<a href="{% url 'register' %}">立即注册</a>
+            </div>
+        </div>
+    </div>
+{% endblock %}
