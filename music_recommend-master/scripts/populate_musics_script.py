@@ -1,19 +1,25 @@
-import random
 import os
-
+import sys
 import django
+import csv
+import random
+
+# Add project root to sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
 django.setup()
 from user.models import Music, Tags
-import csv
 
 publishers = ['Universal Music', 'Sony Music', 'Warner Music', 'Indie', 'Apple Music']
 
 Music.objects.all().delete()
 Tags.objects.all().delete()
-opener = open('data/cloudmusic.csv', 'r', encoding='utf-8')
+csv_file_path = os.path.join(BASE_DIR, 'data/cloudmusic.csv')
+opener = open(csv_file_path, 'r', encoding='utf-8')
+
 # opener.readline()
 opener.readline()
 reader = csv.reader(opener)

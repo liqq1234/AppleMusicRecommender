@@ -1,13 +1,19 @@
 import os
+import sys
 import random
-
 import django
+
+# Add project root to sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
 
 django.setup()
 strs = 'abcdefghijk_mnopqrstuvwxyz'
 from user.models import *
+
+
 
 
 # 随机生成username
