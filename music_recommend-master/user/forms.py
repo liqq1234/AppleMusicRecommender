@@ -36,10 +36,11 @@ class Edit(forms.ModelForm):
 
         def clean_name(self):
             name = self.cleaned_data.get("name")
-            result = UserInfo.objects.filter(name=name)
+            result = User.objects.filter(name=name)
             if result:
-                raise form.ValidationError("Name already exists")
+                raise forms.ValidationError("Name already exists")
             return name
+
 
 
 class RegisterForm(forms.Form):

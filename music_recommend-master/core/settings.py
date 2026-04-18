@@ -29,6 +29,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'music1.colaplusice.com']
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost',
+    'http://127.0.0.1',
+    'https://music1.colaplusice.com'
+]
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -96,9 +103,10 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
-        'LOCATION': '/var/tmp/django_cache',
+        'LOCATION': os.path.join(BASE_DIR, 'data/django_cache'),
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -131,5 +139,10 @@ static = os.path.dirname(os.path.abspath(__file__))
 static = os.path.join(static, "../")
 STATICFILES_DIRS = (os.path.join(static, "static/"),)
 STATIC_URL = "/static/"
+# Default primary key field type
+# https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
 MEDIA_URL = "/media/"
+
