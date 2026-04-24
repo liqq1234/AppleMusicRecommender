@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music Recommendation System - Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apple-red: #ff2d55;
+            --apple-blue: #007aff;
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --text-primary: #1d1d1f;
+        }
+        body {
+            margin: 0;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-primary);
+        }
+        .container {
+            text-align: center;
+            max-width: 1000px;
+            width: 90%;
+            padding: 40px;
+        }
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            letter-spacing: -1px;
+        }
+        .subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 60px;
+        }
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        .card {
+            background: var(--bg-glass);
+            backdrop-filter: blur(20px);
+            padding: 50px 30px;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255,255,255,0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.1);
+            background: #fff;
+        }
+        .icon {
+            font-size: 4rem;
+            margin-bottom: 25px;
+        }
+        .card h2 {
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+        }
+        .card p {
+            color: #888;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+        .accent-blue { color: var(--apple-blue); }
+        .accent-red { color: var(--apple-red); }
+        
+        .footer {
+            margin-top: 80px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div style="position: fixed; top: 30px; right: 40px; display: flex; gap: 20px; align-items: center;">
+            {% if is_authenticated %}
+                <span style="font-weight: 600;">👋 你好, {{ user_name }}</span>
+                <a href="/logout/" style="text-decoration: none; color: #888; font-size: 0.9rem;">退出</a>
+            {% endif %}
+        </div>
+
+        <h1>Apple Music System</h1>
+        <p class="subtitle">基于 SVD 矩阵分解与多源协同过滤的个性化挖掘系统</p>
+        
+        <div class="portal-grid">
+            <a href="/dashboard/" class="card">
+                <div class="icon">🎧</div>
+                <h2 class="accent-red">个性化音乐空间</h2>
+                <p>进入算法核心演示区<br>支持多用户切换、Top-N 权重调节及实时结果拟合呈现</p>
+            </a>
+            
+            <a href="/profile/" class="card">
+                <div class="icon">👤</div>
+                <h2 style="color: #555;">个人播放中心</h2>
+                <p>查看您的专属推荐单曲<br>管理播放历史、收藏列表及个人偏好设置</p>
+            </a>
+            
+            <a href="/report/" class="card">
+                <div class="icon">📈</div>
+                <h2 class="accent-blue">算法性能评估报告</h2>
+                <p>综合性能多维度客观分析<br>包含 RMSE, Precision, Recall 等核心指标的算法对比视图</p>
+            </a>
+        </div>
+        
+        <div class="footer">
+            Graduate Thesis Project &copy; 2026 | Optimized for Thesis Defense
+        </div>
+    </div>
+</body>
+</html>

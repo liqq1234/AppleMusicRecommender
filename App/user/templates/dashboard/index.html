@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music Recommendation Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+        h1 { color: #fa243c; text-align: center; }
+        .controls { display: flex; justify-content: center; margin-bottom: 30px; gap: 10px; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 200px; }
+        button { padding: 10px 20px; background-color: #fa243c; color: white; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background-color: #d11d32; }
+        #chart { width: 100%; height: 400px; margin-top: 20px; }
+        .results { margin-top: 20px; padding: 15px; background: #fff5f6; border-left: 4px solid #fa243c; }
+        ul { list-style: none; padding: 0; }
+        li { padding: 8px 0; border-bottom: 1px solid #eee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Apple Music Recommender</h1>
+        <div class="controls">
+            <input type="number" id="userId" placeholder="Enter User ID (1-5)" value="1">
+            <select id="methodSelect" style="padding: 10px; border-radius: 6px; border: 1px solid #ddd;">
+                <option value="user">User-Based CF</option>
+                <option value="item">Item-Based CF</option>
+                <option value="svd">SVD (Matrix Factorization)</option>
+            </select>
+            <button onclick="getRecommendations()">Get Recommendations</button>
+            <button onclick="loadMetrics()" style="background-color: #4CAF50;">View Algorithm Metrics</button>
+        </div>
+        
+        <div id="results" class="results" style="display: none;">
+            <h3>Recommended Songs for User <span id="displayUserId"></span> (<span id="displayMethod"></span>):</h3>
+            <ul id="recommendList"></ul>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 20px; margin-top: 20px;">
+            <div id="chart" style="flex: 1; min-width: 400px; height: 400px;"></div>
+            <div id="radarChart" style="flex: 1; min-width: 400px; height: 400px;"></div>
+        </div>
+    </div>
+
+    <script>
+        function getRecommendations() {
+            const userId = document.getElementById('userId').value;
+            const method = document.getElementById('methodSelect').value;
+            fetch(`/api/recommend/?user_id=${userId}&method=${method}`)
+                .then(response => response.json())
+                .then(data => {
+                    const displayUserId = document.getElementById('displayUserId');
+                    const displayMethod = document.getElementById('displayMethod');
+                    const recommendList = document.getElementById('recommendList');
+                    const resultsDiv = document.getElementById('results');
+                    
+                    displayUserId.innerText = data.user_id;
+                    displayMethod.innerText = data.method;
+                    recommendList.innerHTML = '';
+                    
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        data.recommendations.forEach(songId => {
+                            const li = document.createElement('li');
+                            li.innerText = `Song ID: ${songId}`;
+                            recommendList.appendChild(li);
+                        });
+                        resultsDiv.style.display = 'block';
+                        updateChart(data.recommendations);
+                    } else {
+                        recommendList.innerHTML = '<li>No recommendations found.</li>';
+                        resultsDiv.style.display = 'block';
+                    }
+                });
+        }
+
+        function loadMetrics() {
+            fetch('/api/evaluate/')
+                .then(response => response.json())
+                .then(data => {
+                    const radarDom = document.getElementById('radarChart');
+                    const myRadar = echarts.init(radarDom);
+                    const option = {
+                        title: { text: 'Algorithm Performance Comparison', left: 'center' },
+                        legend: { data: ['User-Based', 'Item-Based', 'SVD'], bottom: 0 },
+                        radar: {
+                            indicator: [
+                                { name: 'Precision', max: 1 },
+                                { name: 'Recall', max: 1 },
+                                { name: 'F1-Score', max: 1 },
+                                { name: '1-RMSE', max: 1 }
+                            ]
+                        },
+                        series: [{
+                            name: 'Metric Comparison',
+                            type: 'radar',
+                            data: [
+                                { value: [data['User-Based'].precision, data['User-Based'].recall, data['User-Based'].f1, 1 - data['User-Based'].rmse/2], name: 'User-Based' },
+                                { value: [data['Item-Based'].precision, data['Item-Based'].recall, data['Item-Based'].f1, 1 - data['Item-Based'].rmse/2], name: 'Item-Based' },
+                                { value: [data['SVD'].precision, data['SVD'].recall, data['SVD'].f1, 1 - data['SVD'].rmse/2], name: 'SVD' }
+                            ]
+                        }]
+                    };
+                    myRadar.setOption(option);
+                });
+        }
+
+        function updateChart(recommendations) {
+            const chartDom = document.getElementById('chart');
+            const myChart = echarts.init(chartDom);
+            const option = {
+                title: { text: 'Current Recommendation Breakdown', left: 'center' },
+                tooltip: { trigger: 'item' },
+                series: [
+                    {
+                        name: 'Song ID',
+                        type: 'pie',
+                        radius: '50%',
+                        data: recommendations.map(id => ({ value: 1, name: `Song ${id}` })),
+                        emphasis: {
+                            itemStyle: { shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)' }
+                        }
+                    }
+                ]
+            };
+            myChart.setOption(option);
+        }
+
+        // Initial load
+        window.onload = () => {
+            const chartDom = document.getElementById('chart');
+            const myChart = echarts.init(chartDom);
+            myChart.setOption({ title: { text: 'Search for recommendations to see charts', left: 'center' } });
+        };
+    </script>
+</body>
+</html>

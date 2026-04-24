@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apple Music Rec Center - Recommendation System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --apple-red: #ff2d55;
+            --apple-blue: #007aff;
+            --apple-silver: #f5f5f7;
+            --glass: rgba(255, 255, 255, 0.8);
+            --text-secondary: #86868b;
+        }
+        body { 
+            margin: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--apple-silver);
+            color: #1d1d1f;
+        }
+        .header {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            height: 64px;
+        }
+        .nav-brand { font-weight: 600; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; color: #000; text-decoration: none; }
+        .nav-brand img { height: 24px; }
+        .nav-links { display: flex; gap: 30px; height: 100%; align-items: center; }
+        .nav-item { 
+            text-decoration: none; color: #1d1d1f; font-size: 0.95rem; font-weight: 500;
+            height: 100%; display: flex; align-items: center; padding: 0 5px;
+            position: relative; transition: 0.3s;
+        }
+        .nav-item:hover { color: var(--apple-red); }
+        .nav-item.active { color: var(--apple-red); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+            background: var(--apple-red); border-radius: 3px 3px 0 0;
+        }
+
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        
+        .stat-banner { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 40px; 
+        }
+        .stat-item { background: #fff; padding: 20px; border-radius: 18px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 1.8rem; font-weight: 600; color: var(--apple-red); }
+
+        .card { 
+            background: #fff; border-radius: 24px; padding: 30px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05); margin-bottom: 40px;
+        }
+        
+        .controls { display: flex; gap: 20px; align-items: flex-end; margin-bottom: 30px; background: #fff; padding: 25px; border-radius: 20px; }
+        .input-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .input-group label { font-size: 0.85rem; font-weight: 600; color: #666; }
+        input, select { padding: 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 1rem; }
+        .btn-dash { 
+            background: var(--apple-blue); color: #fff; border: none; padding: 12px 25px; 
+            border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 1rem;
+            transition: 0.3s;
+        }
+        .btn-dash:hover { opacity: 0.8; transform: scale(1.02); }
+
+        .music-list table { width: 100%; border-collapse: collapse; }
+        .music-list th { color: var(--text-secondary); font-weight: 400; padding: 15px 0; border-bottom: 1px solid #eee; text-align: left; }
+        .music-list td { padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+
+        .song-name { font-weight: 600; color: #1d1d1f; }
+        .reason { font-size: 0.85rem; color: var(--apple-blue); font-weight: 500; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="/" class="nav-brand">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 5px;">
+                <path d="M9 18V5L19 3V16" stroke="var(--apple-red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="6" cy="18" r="3" stroke="var(--apple-red)" stroke-width="2"/>
+                <circle cx="16" cy="16" r="3" stroke="var(--apple-red)" stroke-width="2"/>
+            </svg>
+            Music System
+        </a>
+        <div class="nav-links">
+            <a href="/" class="nav-item active">推荐中心</a>
+            <a href="/report/" class="nav-item">算法评估报告</a>
+                <a href="/profile/" class="nav-item">我的音乐库</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ... stat-banner omitted ... -->
+        <div class="stat-banner">
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.total_music|default:"106,855" }}</div>
+                <div style="font-size: 0.8rem; color: #888;">库中歌曲总数</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ stats.total_rates|default:"148,289" }}</div>
+                <div style="font-size: 0.8rem; color: #888;">用户交互记录</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">50+</div>
+                <div style="font-size: 0.8rem; color: #888;">活跃测试用户采样</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top: 0; margin-bottom: 20px;">👤 推荐引擎控制 (Context-Aware Controls)</h3>
+            <div class="controls">
+                <div class="input-group">
+                    <label>活跃测试用户 (Pick for Demo)</label>
+                    <select id="userSelect" onchange="document.getElementById('userId').value=this.value; window.location.href='?user_id=' + this.value + '&top_n={{ top_n }}'">
+                        <option value="">-- 选择一个高交互活跃账号 --</option>
+                        {% for u in active_users %}
+                        <option value="{{ u.id }}" {% if u.id == selected_uid %}selected{% endif %}>{{ u.name }} ({{ u.rate_count }} 记录)</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>指定 User ID</label>
+                    <input type="number" id="userId" value="{{ user_id }}" placeholder="输入 UID" style="width: 100px;">
+                </div>
+                <div class="input-group">
+                    <label>推荐数量 (Top-N)</label>
+                    <select id="topN" style="width: 100px;">
+                        <option value="10" {% if top_n == 10 %}selected{% endif %}>10</option>
+                        <option value="20" {% if top_n == 20 %}selected{% endif %}>20</option>
+                        <option value="50" {% if top_n == 50 %}selected{% endif %}>50</option>
+                    </select>
+                </div>
+                <button class="btn-dash" onclick="refreshRec()">重新计算推荐</button>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 40px;">
+            <div class="card">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">🎧 这里的为你推荐 (Discover For You)</h3>
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 25px;">系统基于 SVD 矩阵分解与向量相似度生成的个性化预测列表</p>
+                <div class="music-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>歌曲名称</th>
+                                <th>艺术家</th>
+                                <th>专辑</th>
+                                <th>推荐理由</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in recommendations %}
+                            <tr>
+                                <td class="song-name">
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <button onclick="playMusicV2(this)" data-id="{{ m.id }}" data-name="{{ m.name|escapejs }}" style="background: var(--apple-blue); color: #fff; border: none; width: 28px; height: 28px; border-radius: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.8rem;" title="立即播放">▶</button>
+                                        <a href="/music/{{ m.id }}/" style="text-decoration: none; color: inherit;">{{ m.name }}</a>
+                                    </div>
+                                </td>
+                                <td>{{ m.artist }}</td>
+                                <td style="color: #666; font-size: 0.9rem;">{{ m.album_name }}</td>
+                                <td class="reason">{{ m.reason }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr><td colspan="4" style="text-align: center; padding: 40px; color: #ccc;">未找到推荐结果</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="margin-top: 0; margin-bottom: 5px;">🎵 用户历史偏好 (Input)</h3>
+                <p style="color: #888; font-size: 0.85rem; margin-bottom: 25px;">作为模型计算基准的历史评分数据</p>
+                <div class="music-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>歌曲</th>
+                                <th>艺术家</th>
+                                <th>强度</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for r in history %}
+                            <tr>
+                                <td style="font-size: 0.9rem; font-weight: 500;">{{ r.music.name }}</td>
+                                <td style="font-size: 0.85rem; color: #666;">{{ r.music.artist }}</td>
+                                <td style="color: var(--apple-red); font-weight: 600;">{{ r.mark }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function refreshRec() {
+            const uid = document.getElementById('userId').value;
+            const topN = document.getElementById('topN').value;
+            window.location.href = `?user_id=${uid}&top_n=${topN}`;
+        }
+
+        function playMusicV2(el) {
+            const musicId = el.dataset.id;
+            const musicName = el.dataset.name;
+            fetch(`/play/${musicId}/?user_id=209`) // 演示用户默认取 209
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(`【学术演示】已记录播放交互：\n歌曲: ${musicName}\n系统已同步增加其权重。`);
+                    }
+                })
+                .catch(err => console.error('Play API Error:', err));
+        }
+
+        function playMusic(musicId, musicName) {
+            // Keep for compatibility if needed, but playMusicV2 is preferred
+            fetch(`/play/${musicId}/?user_id=209`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(`【学术演示】已记录播放交互：\n歌曲: ${musicName}\n系统已同步增加其权重。`);
+                    }
+                })
+                .catch(err => console.error('Play API Error:', err));
+        }
+    </script>
+</body>
+</html>
